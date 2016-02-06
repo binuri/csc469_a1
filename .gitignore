@@ -1,0 +1,8 @@
+# Executables
+tracker
+
+# Object files
+*.o
+
+# Files from the svn repo
+.svn/*
