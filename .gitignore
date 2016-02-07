@@ -6,3 +6,6 @@ tracker
 
 # Files from the svn repo
 .svn/*
+
+#temp files
+.*~
