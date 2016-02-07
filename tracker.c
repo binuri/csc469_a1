@@ -31,7 +31,6 @@ u_int64_t inactive_periods(int num, u_int64_t threshold, u_int64_t *samples){
     }
 
     return init;
-
 }
 
 u_int64_t get_estimated_clock_speed(){
@@ -40,19 +39,18 @@ u_int64_t get_estimated_clock_speed(){
 	double tsecs;
 	u_int64_t startcycle, endcycle, deltacycle;
 
-	int k = gettimeofday(&tvstart, NULL);
-	if (k) {printf("first time of day failed\n");}
+	gettimeofday(&tvstart, NULL);
 	startcycle = get_counter();
 	
 	nanosleep(&ts, NULL);
 	
 	endcycle = get_counter();
-	int j = gettimeofday(&tvend, NULL);
-	if (j) {printf("second time of day failed\n");}
+	gettimeofday(&tvend, NULL);
 
-	tsecs = (tvend.tv_sec - tvstart.tv_sec) + 1e6 * (tvend.tv_usec - tvstart.tv_usec);
 
-	deltacycle = endcycle - startcycle;
+	tsecs = (tvend.tv_sec - tvstart.tv_sec) + (tvend.tv_usec - tvstart.tv_usec)/1e6;
+
+	deltacycle = (endcycle - startcycle)/2;
 	printf("cycles: %"PRIu64" \t time:%f \n", deltacycle,tsecs);
 	return deltacycle;
 }

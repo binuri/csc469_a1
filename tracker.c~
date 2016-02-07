@@ -4,6 +4,7 @@
 #include <string.h>
 #include "tsc.h"
 #include <time.h>
+#include <sys/time.h>
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
@@ -34,13 +35,25 @@ u_int64_t inactive_periods(int num, u_int64_t threshold, u_int64_t *samples){
 }
 
 u_int64_t get_estimated_clock_speed(){
-	struct timespec ts = {0,500};
+	struct timespec ts = {1,0};
+	struct timeval tvstart,tvend = {0,0};
+	double tsecs;
+	u_int64_t startcycle, endcycle, deltacycle;
 
-	u_int64_t startcycle = get_counter();
+	gettimeofday(&tvstart, NULL);
+	startcycle = get_counter();
+	
 	nanosleep(&ts, NULL);
-	u_int64_t endcycle = get_counter();
-	printf("cycles: %"PRIu64"\n", endcycle-startcycle);
-    return endcycle-startcycle;
+	
+	endcycle = get_counter();
+	gettimeofday(&tvend, NULL);
+
+
+	tsecs = (tvend.tv_sec - tvstart.tv_sec) + (tvend.tv_usec - tvstart.tv_usec)/1e6;
+
+	deltacycle = endcycle - startcycle;
+	printf("cycles: %"PRIu64" \t time:%f \n", deltacycle,tsecs);
+	return deltacycle;
 }
 
 void print_sample_results(int num_samples, u_int64_t start_time, 
