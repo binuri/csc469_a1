@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+
+import subprocess
+import sys
+import re
+
+
+from matplotlib import pyplot
+import matplotlib as mpl
+
+num_samples = 20
+if len(sys.argv) == 2:
+    num_samples = int(sys.argv[1])
+
+if (len(sys.argv) > 2 or (num_samples < 1)):
+    print "Usage: run_experiment_A [<num_inactive_samples>]"
+    exit(1)
+
+
+subprocess.call(["make"]);
+tracker_out = subprocess.check_output(["tracker", str(num_samples)]);
+
+extracted_results = [] 
+current_total = 0
+num_samples = 0
+
+print tracker_out
+for l in tracker_out.splitlines():
+    
+    if (num_samples < 2):
+        num_samples += 1;
+        continue;
+   
+    parsed_line = re.match('(.*)duration (\d+) cycles', l)
+    duration = int(parsed_line.group(2))
+    extracted_results.append(duration)
+    current_total += duration
+
+print extracted_results
+
+fig = pyplot.figure(figsize=(8,3))
+
+ax2 = fig.add_axes([0.05, 0.475, 0.9, 0.15])
+
+
+
+#second example illustrates the use of a ListedColormap, a
+# BoundaryNorm, and extended ends to show the "over" and "under"
+# value colors.
+cmap = mpl.colors.ListedColormap(['r', 'g', 'b', 'c'])
+cmap.set_over('0.25')
+cmap.set_under('0.75')
+
+# If a ListedColormap is used, the length of the bounds array must be
+# one greater than the length of the color list.  The bounds must be
+# monotonically increasing.
+bounds = [1, 2, 4, 7, 8]
+norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+cb2 = mpl.colorbar.ColorbarBase(ax2, cmap=cmap,
+                                     norm=norm,
+                                     # to use 'extend', you must
+                                     # specify two extra boundaries:
+                                     boundaries=[0]+bounds+[13],
+                                     extend='both',
+                                     ticks=bounds, # optional
+                                     spacing='proportional',
+                                     orientation='horizontal')
+cb2.set_label('Discrete intervals, some other units')
+
+
+pyplot.show()
