@@ -8,33 +8,39 @@ import re
 from matplotlib import pyplot
 import matplotlib as mpl
 
-num_samples = 20
+sample_sets = 3
 if len(sys.argv) == 2:
-    num_samples = int(sys.argv[1])
+    sample_sets = int(sys.argv[1])
 
-if (len(sys.argv) > 2 or (num_samples < 1)):
+if (len(sys.argv) > 2 or (sample_sets < 2)):
     print "Usage: run_experiment_A [<num_inactive_samples>]"
     exit(1)
 
 
 subprocess.call(["make"]);
-tracker_out = subprocess.check_output(["tracker", str(num_samples)]);
+tracker_out = subprocess.check_output(["./tracker", str(sample_sets)]);
 
-extracted_results = [] 
+extracted_results = [0] 
 current_total = 0
 num_samples = 0
 
 print tracker_out
 for l in tracker_out.splitlines():
+   
+    parsed_line = re.match('(.*)duration (\d+) cycles', l) 
+	
+    if not parsed_line:
+        continue
+
     
     if (num_samples < 2):
-        num_samples += 1;
-        continue;
+        num_samples +=1
+        continue
    
     parsed_line = re.match('(.*)duration (\d+) cycles', l)
     duration = int(parsed_line.group(2))
-    extracted_results.append(duration)
-    current_total += duration
+    current_total = current_total +  duration
+    extracted_results.append(current_total)
 
 print extracted_results
 
@@ -47,22 +53,18 @@ ax2 = fig.add_axes([0.05, 0.475, 0.9, 0.15])
 #second example illustrates the use of a ListedColormap, a
 # BoundaryNorm, and extended ends to show the "over" and "under"
 # value colors.
-cmap = mpl.colors.ListedColormap(['r', 'g', 'b', 'c'])
-cmap.set_over('0.25')
-cmap.set_under('0.75')
+cmap = mpl.colors.ListedColormap(['r', 'b'] * (sample_sets - 1))
 
 # If a ListedColormap is used, the length of the bounds array must be
 # one greater than the length of the color list.  The bounds must be
 # monotonically increasing.
-bounds = [1, 2, 4, 7, 8]
+bounds = extracted_results
+
 norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 cb2 = mpl.colorbar.ColorbarBase(ax2, cmap=cmap,
-                                     norm=norm,
                                      # to use 'extend', you must
                                      # specify two extra boundaries:
-                                     boundaries=[0]+bounds+[13],
-                                     extend='both',
-                                     ticks=bounds, # optional
+									 boundaries = bounds,
                                      spacing='proportional',
                                      orientation='horizontal')
 cb2.set_label('Discrete intervals, some other units')
