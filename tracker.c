@@ -9,52 +9,11 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 int verbose;
+
 /*
- * Continually checks the cycle counter and detects when two successive readings
- * differ by more than threshold cycles, which indicates that the process has
- * been inactive. Num samples of such recordings are saved in to the given
- * samples array and the inital reading is returned.
+ * Given a set of inactive samples, prints out the durations of active and
+ * inactive periods
  */
-u_int64_t inactive_periods(int num, u_int64_t threshold, u_int64_t *samples){
-
-    u_int64_t init, curr, prev;
-    init = curr = prev = get_counter();
-
-    for (int i = 0; i < num;){
-        curr = get_counter();
-        if (curr - prev > threshold){
-            samples[ 2 * i] = prev;
-            samples[ 2 * i + 1] = curr;
-            i++;
-        }
-        prev = curr;
-    }
-
-    return init;
-}
-
-u_int64_t get_estimated_clock_speed(){
-	struct timespec ts = {1,0};
-	struct timeval tvstart,tvend = {0,0};
-	double tsecs;
-	u_int64_t startcycle, endcycle, deltacycle;
-
-	gettimeofday(&tvstart, NULL);
-	startcycle = get_counter();
-	
-	nanosleep(&ts, NULL);
-	
-	endcycle = get_counter();
-	gettimeofday(&tvend, NULL);
-
-
-	tsecs = (tvend.tv_sec - tvstart.tv_sec) + (tvend.tv_usec - tvstart.tv_usec)/1e6;
-
-	deltacycle = (endcycle - startcycle)/2;
-	printf("cycles: %"PRIu64" \t time:%f \n", deltacycle,tsecs);
-	return deltacycle;
-}
-
 void print_sample_results(int num_samples, u_int64_t start_time, 
                                  u_int64_t threshold, u_int64_t *samples){
     
@@ -86,15 +45,15 @@ int main (int argc, char** argv) {
     verbose = 0;
 
     if(argc < 2) {
-        printf ("ERROR: Invalid number of arguments. Please use the following format:");
-        printf ("tracker <num_samples>");
+        printf ("ERROR: Invalid number of arguments. Please use the following format:\n");
+        printf ("tracker <num_samples>\n");
         return EXIT_FAILURE;
     }
     
     char *err;
     int num_samples = strtoll(argv[1], &err, 10);
     if (*err) {
-        printf ("ERROR: Invalid input for 'num_samples'");
+
         return EXIT_FAILURE;
     }    
 
@@ -103,13 +62,14 @@ int main (int argc, char** argv) {
        	verbose = 1;
     }
 
-    u_int64_t threshold = get_estimated_clock_speed();
-    
+    u_int64_t clock_speed = get_estimated_clock_speed();   
     u_int64_t *samples = malloc(num_samples * sizeof(u_int64_t) * 2);
+    
+    start_counter();
     u_int64_t start_time = inactive_periods(num_samples, 1400, samples);
     
-    print_sample_results(num_samples, start_time, threshold, samples);
+    print_sample_results(num_samples, start_time, clock_speed, samples);
     free(samples);
-   	 
-	return EXIT_SUCCESS;
-} 
+    
+    return EXIT_SUCCESS;
+}
