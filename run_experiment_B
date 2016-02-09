@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+import subprocess
+import sys
+import re
+import os
+
+child_procs = 5
+
+
+sample_sets = 3
+if len(sys.argv) == 2:
+    sample_sets = int(sys.argv[1])
+
+if (len(sys.argv) > 2 or (sample_sets < 2)):
+    print "Usage: run_experiment_B\n"
+    exit(1)
+
+subprocess.call(["make"])
+tracker_out = subprocess.check_output(["./context_tracker", str(sample_sets)]);
+
+t_results = dict()
+c_results = []
+
+for i in range (child_procs):
+    t_results[i] = []
+
+
+current_total = 0
+num_samples = 0
+
+for l in tracker_out.splitlines():
+    parsed_line = re.match('\[Child (\d+)\](Active|Inactive)(.*) start at (\d+) duration (\d+) cycles \((\d+\.\d+) ms\)', l)
+    
+    if not parsed_line:
+        continue
+  
+
+    child = int(parsed_line.group(1))
+
+    if parsed_line.group(2) == 'Active':
+        start_cy = int(parsed_line.group(4))
+        duration_cy = int(parsed_line.group(5))
+        tup = (start_cy, duration_cy, child)
+        c_results.append(tup)
+    
+    time_duration = float(parsed_line.group(6))
+    t_results[child].append(time_duration)
+        
+for i in range (child_procs):
+    t_results[i].sort()
+    
+c_results.sort() 
+
+total_switch_time = 0
+num_switches = 0
+prev_tuple = c_results[0]
+for tup in c_results:
+    if (prev_tuple[2] != tup[2]):
+        switch_time = tup[0] - (prev_tuple[0] + prev_tuple[1])
+        total_switch_time += switch_time
+        num_switches += 1
+    prev_tuple = tup
+
+print "The average context switch time : " + str(total_switch_time / (num_switches * 1.0))

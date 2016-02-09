@@ -26,23 +26,23 @@ void print_sample_results(int process_num, int num_samples, u_int64_t start_time
                         i, samples[i * 2], samples[2 * i + 1]);
         }
         printf("[Child %d]Active %d: start at %"PRIu64
-                        "duration %"PRIu64" cycles (%f ms)\n",
+                        " duration %"PRIu64" cycles (%f ms)\n",
             process_num,
             i,
             start_time,
             samples[i * 2] - start_time,
-            (samples[i * 2] - start_time) / (threshold * 10e6) * 10e3);
+            (samples[i * 2] - start_time) / (threshold * 1.0) * 10e3);
 
         // Start time for the inactive period
         start_time = samples[i * 2];
         
         printf("[Child %d]Inactive %d: start at %"PRIu64
-                        "duration %"PRIu64" cycles (%f ms)\n",
+                        " duration %"PRIu64" cycles (%f ms)\n",
             process_num,
             i,
             start_time,
             samples[i * 2 + 1] - start_time,
-            (samples[i * 2 + 1] - start_time) / (threshold * 10e6) * 10e3);
+            (samples[i * 2 + 1] - start_time) / (threshold * 1.0) * 10e3);
             
         // Start time for active period is end of the inactive period
         start_time = samples[i * 2 + 1];
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     u_int64_t clock_speed = get_estimated_clock_speed();
 
     start_counter();
-    for (int i = 0; i < 6 ; i++) {
+    for (int i = 0; i < 5 ; i++) {
         pid_t pid = fork();
         if (pid == -1) {
             perror("Error when forking");
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     }
 
     
-    for (int i = 0; i < 6 ; i++) {
+    for (int i = 0; i < 5; i++) {
         int status;
         pid_t pid = wait(&status);
         if (pid == -1) {
