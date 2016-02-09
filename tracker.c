@@ -27,14 +27,14 @@ void print_sample_results(int num_samples, u_int64_t start_time,
             i,
             start_time,
             samples[i * 2] - start_time,
-            (samples[i * 2] - start_time) / (threshold * 10e6) * 10e3);
+            (samples[i * 2] - start_time) / (threshold * 1.0) * 1000.0);
 
         start_time = samples[i * 2];
         printf("Inactive %d: start at %"PRIu64" duration %"PRIu64" cycles (%f ms)\n",
             i,
             start_time,
             samples[i * 2 + 1] - start_time,
-            (samples[i * 2 + 1] - start_time) / (threshold * 10e6) * 10e3);
+            (samples[i * 2 + 1] - start_time) / (threshold * 1.0) * 1000.0);
         start_time = samples[i * 2 + 1];
     }
 

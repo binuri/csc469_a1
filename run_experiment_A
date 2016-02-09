@@ -10,7 +10,7 @@ if len(sys.argv) == 2:
     sample_sets = int(sys.argv[1])
 
 if (len(sys.argv) > 2 or (sample_sets < 2)):
-    print "Usage: run_experiment_A [<num_inactive_samples>]"
+    print "Usage: run_experiment_A [<num_inactive_samples>]\n"
     exit(1)
 
 
@@ -21,10 +21,9 @@ extracted_results = [0]
 current_total = 0
 num_samples = 0
 
-print tracker_out
 for l in tracker_out.splitlines():
    
-    parsed_line = re.match('(.*)duration (\d+) cycles', l) 
+    parsed_line = re.match('(.*)\((\d+\.\d+) ms\)', l) 
 	
     if not parsed_line:
         continue
@@ -34,12 +33,9 @@ for l in tracker_out.splitlines():
         num_samples +=1
         continue
    
-    parsed_line = re.match('(.*)duration (\d+) cycles', l)
-    duration = int(parsed_line.group(2))
+    duration = float(parsed_line.group(2))
     current_total = current_total +  duration
     extracted_results.append(current_total)
-
-print extracted_results
 
 proc = subprocess.Popen(['gnuplot', '-p'], stdin=subprocess.PIPE)
 script = """\
@@ -48,10 +44,12 @@ script = """\
     set xlabel "Time (ms)"
     set nokey
     set noytics
-    set noxtics
-    set term x11
-    set size 0.9, 0.35
-    """ % {'title': "Plot 1", 'output': "gnuplot_PartA1.out"}
+    set xtics 4
+    set yrange [-5:1]
+    set term x11 
+    set size 1, 0.35
+    set origin 0, 0.3
+    """ % {'title': "Active and Inactive periods", 'output': "gnuplot_PartA1.out"}
 
 proc.stdin.write(script);
 
@@ -63,7 +61,7 @@ for i in range (0, (sample_sets - 1) * 2):
                  color='blue' if active else 'red')
     
     set_prop = ('set object %(sample)d rect from %(left)f, %(bottom)f to '
-            '%(right)f, %(top)f, 2 fc rgb "%(color)s" fs solid '
+            '%(right)f, %(top)f, 2 fc rgb "%(color)s" fs solid border lc rgb "#FF0000" lw 0'
             '\n') % properties
 
     proc.stdin.write(set_prop)
@@ -78,8 +76,4 @@ set_prop = ('plot [0:%(maxend)d] [0:%(height)d] '
               '\n') % properties
 proc.stdin.write(set_prop)
 proc.stdin.close()
-
-# cmd = '<< ---EOF---\n' + script + '---EOF---\n'
-# subprocess.call(['gnuplot', cmd])
-# ret = os.system(cmd)
 

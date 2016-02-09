@@ -6,6 +6,9 @@
 
 #include "tsc.h"
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 /* initialize the cycle counter */
 u_int64_t start = 0;
 
@@ -25,7 +28,7 @@ u_int64_t get_counter()
   /* Get the cycle counter */
   access_counter(&ncyc_hi, &ncyc_lo);
 
-  return (((u_int64_t)ncyc_hi << 32) | ncyc_lo) - start;
+  return ((((u_int64_t)ncyc_hi << 32) | ncyc_lo) - start) / 2;
 
 }
 
@@ -47,7 +50,8 @@ u_int64_t get_estimated_clock_speed(){
 
     //tsecs = (tvend.tv_sec - tvstart.tv_sec) + (tvend.tv_usec - tvstart.tv_usec)/1e6;
 
-    deltacycle = (endcycle - startcycle)/2;
+    deltacycle = (endcycle - startcycle);
+    printf("Cycles/Second : %"PRIu64"\n", deltacycle);
     return deltacycle;
 }
 
