@@ -41,41 +41,45 @@ for l in tracker_out.splitlines():
 
 print extracted_results
 
+proc = subprocess.Popen(['gnuplot', '-p'], stdin=subprocess.PIPE)
 script = """\
     set output "%(output)s"
     set title "%(title)s"
     set xlabel "Time (ms)"
     set nokey
     set noytics
-    set term png
-    set size 0.55, 0.25
-    """ % {'title': "Plot 1", 'output': "plot1"}
+    set noxtics
+    set term x11
+    set size 0.9, 0.35
+    """ % {'title': "Plot 1", 'output': "gnuplot_PartA1.out"}
+
+proc.stdin.write(script);
 
 active = 1
 for i in range (0, (sample_sets - 1) * 2):
 
-    properties = dict(sample=i+1, left=extracted_results[i], bottom=0.1,
-                 right=extracted_results[i+1], top=1.1,
+    properties = dict(sample=i+1, left=extracted_results[i], bottom=0,
+                 right=extracted_results[i+1], top=1,
                  color='blue' if active else 'red')
     
     set_prop = ('set object %(sample)d rect from %(left)f, %(bottom)f to '
             '%(right)f, %(top)f, 2 fc rgb "%(color)s" fs solid '
             '\n') % properties
 
-    script += set_prop
+    proc.stdin.write(set_prop)
     
     active = active ^ 1
 
 
-properties = dict(maxend=extracted_results[i], height=1.1)
+properties = dict(maxend=extracted_results[i], height=1)
 set_prop = ('plot [0:%(maxend)d] [0:%(height)d] '
               '0 title "Active", '
               '0 title "Inactive"'
               '\n') % properties
-script += set_prop
+proc.stdin.write(set_prop)
+proc.stdin.close()
 
-subprocess.call(["gnuplot", script]);
-
-# cmd ='gnuplot << ---EOF---\n' + script + '---EOF---\n'
+# cmd = '<< ---EOF---\n' + script + '---EOF---\n'
+# subprocess.call(['gnuplot', cmd])
 # ret = os.system(cmd)
 

@@ -13,7 +13,7 @@ tracker: tracker.o tsc.o
 	$(CC) $(CC_FLAG) -std=gnu99 -o tracker tracker.o tsc.o
 
 clean:
-	rm *.o tracker context_tracker .*.swp 
+	rm *.o tracker context_tracker .*.swp *.out
 
 context_tracker.o: context_tracker.c
 	$(CC) $(CC_FLAG) -std=gnu99 -c context_tracker.c
