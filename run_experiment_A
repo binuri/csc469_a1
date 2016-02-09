@@ -42,7 +42,7 @@ script = """\
     set output "%(output)s"
     set title "%(title)s"
     set xlabel "Time (ms)"
-    set nokey
+    set key default
     set noytics
     set xtics 4
     set yrange [-5:1]
@@ -71,8 +71,8 @@ for i in range (0, (sample_sets - 1) * 2):
 
 properties = dict(maxend=extracted_results[i], height=1)
 set_prop = ('plot [0:%(maxend)d] [0:%(height)d] '
-              '0 title "Active", '
-              '0 title "Inactive"'
+              '0 lc rgb "blue" title "Active", '
+              '0 lc rgb "red" title "Inactive"'
               '\n') % properties
 proc.stdin.write(set_prop)
 proc.stdin.close()
