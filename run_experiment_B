@@ -6,36 +6,45 @@ import re
 import os
 
 child_procs = 5
+sample_sets = 5
+
+def convert_to_ms(duration, clock_speed):
+    return duration/(clock_speed * 1.0) * 1000
 
 
-sample_sets = 3
-if len(sys.argv) == 2:
+if len(sys.argv) >= 2:
     sample_sets = int(sys.argv[1])
 
-if (len(sys.argv) > 2 or (sample_sets < 2)):
-    print "Usage: run_experiment_B\n"
+if len(sys.argv) >= 3:
+    child_procs = int(sys.argv[2])
+    if (child_procs > 5):
+        child_procs = 5
+        print "NOTE: Max child processes that can be created is 5, so num_child_procs set to 5"
+        
+
+if (len(sys.argv) > 3 or (sample_sets < 2)):
+    print "Usage: run_experiment_B [<sample_sets>] [<num_child_procs>]\n"
     exit(1)
 
-subprocess.call(["make"])
-tracker_out = subprocess.check_output(["./context_tracker", str(sample_sets)]);
 
-t_results = dict()
+# Execute the tracker
+subprocess.check_output(["make"])
+tracker_out = subprocess.check_output(["./context_tracker", str(sample_sets), str(child_procs)]);
+
+
+# default clock speed, this is replaced when the output is parsed
+clock_speed = 1400000000
+
 c_results = []
-
-for i in range (child_procs):
-    t_results[i] = []
-
-
-current_total = 0
-num_samples = 0
-
 for l in tracker_out.splitlines():
     parsed_line = re.match('\[Child (\d+)\](Active|Inactive)(.*) start at (\d+) duration (\d+) cycles \((\d+\.\d+) ms\)', l)
     
     if not parsed_line:
+        parsed_line = re.match('Cycles/Second : (\d+)', l)
+        if parsed_line:
+            clock_speed = int(parsed_line.group(1))
         continue
-  
-
+     
     child = int(parsed_line.group(1))
 
     if parsed_line.group(2) == 'Active':
@@ -43,23 +52,115 @@ for l in tracker_out.splitlines():
         duration_cy = int(parsed_line.group(5))
         tup = (start_cy, duration_cy, child)
         c_results.append(tup)
-    
-    time_duration = float(parsed_line.group(6))
-    t_results[child].append(time_duration)
         
-for i in range (child_procs):
-    t_results[i].sort()
-    
+# Sort results according to the start cycle counter    
 c_results.sort() 
 
 total_switch_time = 0
 num_switches = 0
+
+total_time_slices = 0
+curr_time_slice_start = c_results[0][0]
+
+# Calculating the context switch time and time slice duration
 prev_tuple = c_results[0]
 for tup in c_results:
     if (prev_tuple[2] != tup[2]):
         switch_time = tup[0] - (prev_tuple[0] + prev_tuple[1])
         total_switch_time += switch_time
         num_switches += 1
+        
+        time_slice_duration = prev_tuple[0] + prev_tuple[1] - curr_time_slice_start
+        total_time_slices += time_slice_duration
+        
+        #print "Process " + str(prev_tuple[2]) + " had a time slice of " + str(convert_to_ms(time_slice_duration, clock_speed)) + ", start = " + str(curr_time_slice_start) + ", end = " + str(prev_tuple[0] + prev_tuple[1])
+        
+        #print "Context switch from Process " + str(prev_tuple[2]) + " to process " + str(tup[2])
+
+        curr_time_slice_start = tup[0]
+                
     prev_tuple = tup
 
-print "The average context switch time : " + str(total_switch_time / (num_switches * 1.0))
+# Adding the last active time slice to the sum
+time_slice_duration = prev_tuple[0] + prev_tuple[1] - curr_time_slice_start
+total_time_slices += time_slice_duration
+
+
+print "EXPERIMENT RESULTS FROM PART A2 : CONTEXT SWITCHES"
+print "\tNum of child processes forked        : " + str(child_procs)
+print "\tNum samples gathered by each process : " + str(sample_sets) 
+print "\tThe average context switch time : " + str((total_switch_time / (num_switches * 1.0)) / clock_speed * 1000)
+print "\tThe average time slice duration : " + str((total_time_slices / ((num_switches + 1) * 1.0)) / clock_speed * 1000)
+
+
+# Plotting the process activities
+proc = subprocess.Popen(['gnuplot', '-p'], stdin=subprocess.PIPE)    
+script = """\
+        set output "%(output)s"
+        set title "%(title)s"
+        set xlabel "Time (ms)"
+        set key outside left top horizontal
+        set noytics
+        set xtics 12
+        set yrange [-5:1]
+        set term x11
+        set size 1, 0.45
+        set origin 0, 0.3
+        """ % {'title': "Context switch periods", 'output': "gnuplot_PartA2.out"}
+
+proc.stdin.write(script);
+
+colors = ['blue', 'green', 'yellow', 'orange', 'red']
+
+end_tick = 0
+inactive_period_start = c_results[0][0]
+i = 1 
+for tup in c_results:
+    
+    start_tick = end_tick
+    inact_duration = tup[0] - inactive_period_start
+    inact_duration_ms = convert_to_ms(inact_duration, clock_speed)
+    end_tick += inact_duration_ms
+
+    # The inactive period before the activity period in tup
+    properties = dict(sample=i, left=start_tick, bottom=0,
+                 right=end_tick, top=1,
+                 color='black')
+
+    set_prop = ('set object %(sample)d rect from %(left)f, %(bottom)f to '
+            '%(right)f, %(top)f, 2 fc rgb "%(color)s" fs solid border lc rgb "black" lw 0'
+            '\n') % properties
+    proc.stdin.write(set_prop)
+    
+    i += 1
+
+    start_tick = end_tick
+    duration_ms = convert_to_ms(tup[1], clock_speed)
+    end_tick += duration_ms
+
+    inactive_period_start = tup[0] + tup[1]
+
+    # Active period in tup
+    properties = dict(sample=i, left=start_tick, bottom=0,
+                 right=end_tick, top=1,
+                 color=colors[tup[2]])
+
+    set_prop = ('set object %(sample)d rect from %(left)f, %(bottom)f to '
+            '%(right)f, %(top)f, 2 fc rgb "%(color)s" fs solid border lc rgb "black" lw 0'
+            '\n') % properties
+
+    proc.stdin.write(set_prop)
+
+    i += 1
+
+properties = dict(maxend=end_tick, height=1)
+set_prop = ('plot [0:%(maxend)d] [0:%(height)d] '
+              '0 lc rgb "blue" title "Proc 1", '
+              '0 lc rgb "green" title "Proc 2", '
+              '0 lc rgb "yellow" title "Proc 3", '
+              '0 lc rgb "orange" title "Proc 4", '
+              '0 lc rgb "red" title "Proc 5", '
+              '0 lc rgb "black" title "Inactive"'
+              '\n') % properties
+proc.stdin.write(set_prop)
+proc.stdin.close()
