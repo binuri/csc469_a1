@@ -23,7 +23,7 @@ for membind in [0,2,4,6]:
 			mintime = 0
 			maxtime = 0
 			print("\tTesting processor " + str(physcpubind) + " in node " + str(cpunode))
-			args = shlex.split("numactl --membind " + str(membind) + " --physcpubind " + str(physcpubind) + " mccalpin-stream")
+			args = shlex.split("numactl --membind " + str(membind) + " --physcpubind " + str(physcpubind) + " /u/csc469h/winter/pub/assgn1/bin/mccalpin-stream")
 			output = subprocess.check_output(args).splitlines()[22:27]
 	
 		
