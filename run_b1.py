@@ -53,7 +53,7 @@ for membind in [0,2,4,6]:
 
 		print ("Avg for processors in node " + str(cpunode) + " to acess memory in node " + str(membind) +":\n Best rate:" + str(nodebr[membind/2,cpunode /2]) + "MB/s\tAvg time:" + str(nodeat[membind/2,cpunode /2]) + "\n\t\tMin time:" + str(nodemint[membind/2,cpunode /2]) + "\tMax time:" + str(nodemaxt[membind/2,cpunode /2])+"\n") 
 		
-print("Memory access times are:")
+print("Memory bandwidths are (in MB/s):")
 print("CPU Node\t0:\t2:\t4:\t6:")
 for i in range(4):
 	print "Mem Node "+str(i*2) + ":\t" + str(nodebr[i,0]) +"\t"+ str(nodebr[i,1]) +"\t"+ str(nodebr[i,2]) +"\t"+ str(nodebr[i,3])
