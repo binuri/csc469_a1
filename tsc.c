@@ -65,10 +65,14 @@ u_int64_t inactive_periods(int num, u_int64_t threshold, u_int64_t *samples){
 
     u_int64_t init, curr, prev;
     init = curr = prev = get_counter();
-
+    
     for (int i = 0; i < num;){
-    	//TODO : Random function to sleep or something 
         curr = get_counter();
+        int temp = 0;    
+        for (int i = 0; i < 20; i++){
+            temp += i;
+        }
+
         if (curr - prev > threshold){
             samples[ 2 * i] = prev;
             samples[ 2 * i + 1] = curr;
@@ -79,4 +83,3 @@ u_int64_t inactive_periods(int num, u_int64_t threshold, u_int64_t *samples){
 
     return init;
 }
-
