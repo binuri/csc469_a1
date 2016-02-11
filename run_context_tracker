@@ -66,16 +66,17 @@ curr_time_slice_start = c_results[0][0]
 prev_tuple = c_results[0]
 for tup in c_results:
     if (prev_tuple[2] != tup[2]):
+        # print "Context switch from Process " + str(prev_tuple[2] + 1) + " to process " + str(tup[2] + 1)
+
         switch_time = tup[0] - (prev_tuple[0] + prev_tuple[1])
         total_switch_time += switch_time
         num_switches += 1
-        
+        # print "Context switch duration : " + str(convert_to_ms(switch_time, clock_speed))  
         time_slice_duration = prev_tuple[0] + prev_tuple[1] - curr_time_slice_start
         total_time_slices += time_slice_duration
         
-        #print "Process " + str(prev_tuple[2]) + " had a time slice of " + str(convert_to_ms(time_slice_duration, clock_speed)) + ", start = " + str(curr_time_slice_start) + ", end = " + str(prev_tuple[0] + prev_tuple[1])
+        # print "Process " + str(prev_tuple[2] + 1) + " had a time slice of " + str(convert_to_ms(time_slice_duration, clock_speed)) + ", start = " + str(curr_time_slice_start) + ", end = " + str(prev_tuple[0] + prev_tuple[1]) + "\n"
         
-        #print "Context switch from Process " + str(prev_tuple[2]) + " to process " + str(tup[2])
 
         curr_time_slice_start = tup[0]
                 
@@ -89,6 +90,7 @@ total_time_slices += time_slice_duration
 print "EXPERIMENT RESULTS FROM PART A2 : CONTEXT SWITCHES"
 print "\tNum of child processes forked        : " + str(child_procs)
 print "\tNum samples gathered by each process : " + str(sample_sets) 
+print "\tClock Speed                     : " + str(clock_speed)
 print "\tThe average context switch time : " + str((total_switch_time / (num_switches * 1.0)) / clock_speed * 1000)
 print "\tThe average time slice duration : " + str((total_time_slices / ((num_switches + 1) * 1.0)) / clock_speed * 1000)
 
