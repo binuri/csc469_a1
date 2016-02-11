@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         
             u_int64_t *samples = malloc(num_samples * sizeof(u_int64_t) * 2);
 
-            u_int64_t start_time = inactive_periods(num_samples, 1000, samples);
+            u_int64_t start_time = inactive_periods(num_samples, 1100, samples);
 
             print_sample_results(i, num_samples, start_time, clock_speed, samples);
             fflush(stdout);
