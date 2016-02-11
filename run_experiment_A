@@ -5,7 +5,7 @@ import sys
 import re
 import os
 
-sample_sets = 3
+sample_sets = 10
 if len(sys.argv) == 2:
     sample_sets = int(sys.argv[1])
 
@@ -16,6 +16,8 @@ if (len(sys.argv) > 2 or (sample_sets < 2)):
 
 subprocess.call(["make"]);
 tracker_out = subprocess.check_output(["./tracker", str(sample_sets)]);
+
+print tracker_out
 
 extracted_results = [0] 
 current_total = 0
@@ -42,12 +44,12 @@ script = """\
     set output "%(output)s"
     set title "%(title)s"
     set xlabel "Time (ms)"
-    set key default
+    set key outside left top horizontal
     set noytics
     set xtics 4
     set yrange [-5:1]
     set term x11 
-    set size 1, 0.35
+    set size 1, 0.45
     set origin 0, 0.3
     """ % {'title': "Active and Inactive periods", 'output': "gnuplot_PartA1.out"}
 
