@@ -36,23 +36,18 @@ u_int64_t get_counter()
  * Returns the estimated clock speed of the current system
  */
 u_int64_t get_estimated_clock_speed(){
-    struct timespec ts = {1,0};
-    //struct timeval tvstart,tvend = {0,0};
-    u_int64_t startcycle, endcycle, deltacycle;
-
-    //gettimeofday(&tvstart, NULL);
-    startcycle = get_counter();
-    
-    nanosleep(&ts, NULL);
-    
-    endcycle = get_counter();
-    //gettimeofday(&tvend, NULL);
-
-    //tsecs = (tvend.tv_sec - tvstart.tv_sec) + (tvend.tv_usec - tvstart.tv_usec)/1e6;
-
-    deltacycle = (endcycle - startcycle);
-    printf("Cycles/Second : %"PRIu64"\n", deltacycle);
-    return deltacycle;
+    struct timespec ts = {0,2.5e8};
+    u_int64_t startcycle, endcycle, deltacycle, avgcycle = 0;
+    for (int i=0; i<10; i++) {
+        startcycle = get_counter();
+        nanosleep(&ts, NULL);
+        endcycle = get_counter();
+        deltacycle = (endcycle - startcycle)*4;
+        avgcycle += deltacycle;
+    }
+    avgcycle = avgcycle / 10;
+    printf("Cycles/Second : %"PRIu64"\n", avgcycle);
+    return avgcycle;
 }
 
 /*
