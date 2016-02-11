@@ -57,16 +57,23 @@ int main (int argc, char** argv) {
         return EXIT_FAILURE;
     }    
 
+    // Deafult threshold
+    u_int64_t threshold = 1100;
+
     // Check if verbose flag is found
-    if (argc == 3 && strcmp(argv[2], "-v") == 0) {
-       	verbose = 1;
+    if (argc == 3){
+        if  (strcmp(argv[2], "-v") == 0) {
+       	    verbose = 1;
+        } else  {
+            threshold = (u_int64_t)strtoll(argv[2], &err, 10);
+        }
     }
 
     u_int64_t clock_speed = get_estimated_clock_speed();   
     u_int64_t *samples = malloc(num_samples * sizeof(u_int64_t) * 2);
     
     start_counter();
-    u_int64_t start_time = inactive_periods(num_samples, 1400, samples);
+    u_int64_t start_time = inactive_periods(num_samples, threshold, samples);
     
     print_sample_results(num_samples, start_time, clock_speed, samples);
     free(samples);
