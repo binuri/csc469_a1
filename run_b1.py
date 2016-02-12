@@ -57,3 +57,13 @@ print("Memory bandwidths are (in MB/s):")
 print("CPU Node\t0:\t2:\t4:\t6:")
 for i in range(4):
 	print "Mem Node "+str(i*2) + ":\t" + str(nodebr[i,0]) +"\t"+ str(nodebr[i,1]) +"\t"+ str(nodebr[i,2]) +"\t"+ str(nodebr[i,3])
+	
+ratio = {}
+for i in range(4):
+	for j in range(4):
+		ratio[i,j] = nodebr[i,i]/nodebr[i,j]
+print("\nMemory bandwidths ratios:")
+print("CPU Node\t0:\t2:\t4:\t6:")
+for i in range(4):
+	print "Mem Node "+str(i*2) + ":\t" + str(ratio[i,0]) +"\t"+ str(ratio[i,1]) +"\t"+ str(ratio[i,2]) +"\t"+ str(ratio[i,3])
+		
