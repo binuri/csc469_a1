@@ -17,5 +17,5 @@ context_tracker [<num_samples>] [<num_procs>]
 <num_samples> : Number of samples to create (int). Default value is 5.
 <num_procs> : Number of child process to create. (int). Default value is 5.
 
-run_b1
+run_b1.py
 No parameters required
